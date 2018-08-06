@@ -15,6 +15,7 @@ public class Parser {
     CASE aCase;
 
     public enum GROUP {
+        LEN("LEN"),
         BYTE("BYTE"),
         NONE("NONE");
 
@@ -47,30 +48,69 @@ public class Parser {
         Dictionary<String, GROUP> _dict = new Hashtable<String, GROUP>();
         String[] temp = {"", ""};
 
-        while (arr.iterator().hasNext()) {
-            temp = arr.get(0).split(":");
+        for (String key : arr) {
+            temp = key.split(":");
             _dict.put(temp[0], GROUP.valueOf(temp[1]));
-            arr.remove(0);
         }
 
         this.dict = _dict;
     }
-    public String mappingString() throws IOException {
-        if (this.dict == null) {
-            return "There is no Keyword";
-        }
 
-        Dictionary<String, String> KeyByData = new Hashtable<String, String>();
-        Dictionary<String, Dictionary> mergedData = new Hashtable<String, Dictionary>();
-
-        String  ret = "";
-        String data = "";
-
-        String enterDoubleTab = "\r\n\t\t";
-        String enterTab = "\r\n\t";
-        String enter = "\r\n";
-
+    public void update_reader(BufferedReader _buf_reader) {
+        this.buf_reader = _buf_reader;
     }
+
+//    public String mappingDataByPlainText() throws IOException {
+//        if (this.dict == null) {
+//            return "There is no Keyword";
+//        }
+//
+//        Dictionary<String, String> keyByData = new Hashtable<String, String>();
+//        Dictionary<String, Dictionary> mergedData = new Hashtable<String, Dictionary>();
+//
+//        String  ret = "";
+//        String data = "";
+//
+//        while ((data = this.buf_reader.readLine()) != null) {
+//            if (!data.equals("")) {
+//                keyByData = this.parseByKeyword(data);
+//                if (keyByData.size() == 0) {
+//                    continue;
+//                }
+//
+//                String id = keyByData.get("PT");
+//                keyByData.remove("PT");
+//                if (mergedData.get(id).isEmpty()) {
+//                    mergedData.put(id, keyByData);
+//                } else {
+//                    this.matchDict(mergedData.get(id), keyByData);
+//                }
+//            }
+//        }
+//
+//        System.out.println(mergedData.toString());
+//        return ret;
+//
+//    }
+
+//    public Dictionary<String, String> matchDict(Dictionary<String, String> _old, Dictionary<String, String> _new) {
+//        Dictionary<String, String> ret = new Hashtable<String, String>();
+//
+//        while ( _old.keys().hasMoreElements() && _new.keys().hasMoreElements() ) {
+//            String ok = _old.keys().nextElement();
+//            String nk = _new.keys().nextElement();
+//
+//            if (ok.equals(nk)) {
+//                if (_old.get(ok).equals(_new.get(nk))) {
+//                    ret.put(ok, _old.get(ok));
+//                } else {
+//
+//                }
+//            }
+//
+//
+//        }
+//    }
 
     public String parseString() throws IOException {
         if (this.dict == null) {
@@ -81,41 +121,35 @@ public class Parser {
 
         String ret = "";
         String data = "";
-
-        String enterDoubleTab = "\r\n\t\t";
-        String enterTab = "\r\n\t";
-        String enter = "\r\n";
-
-        String temp1 = enterDoubleTab;
-
-        ret += "{" + enter;
+        String temp1 = "";
+        String temp2 = "";
 
         while ((data = this.buf_reader.readLine()) != null) {
-
-            String temp2 = "";
 
             if (!data.equals("")) {
                 keyByData = this.parseByKeyword(data);
                 if (keyByData.size() == 0) {
                     continue;
                 }
-                temp2 += this.groupValueBySetting(keyByData);
-                temp2 += "," + enterDoubleTab;
-                temp1 += temp2;
+                temp1 += this.groupValueBySetting(keyByData) + ",";
+                temp2 += temp1;
             }
 
             else {
-                if (!temp1.equals(enterDoubleTab)) {
-                    temp1 = temp1.substring(0, temp1.length() - 1);
-                    ret += "\t" + wraping(temp1) + "," + enter;
+                if (!temp2.equals("")) {
+                    temp2 = temp2.substring(0, temp2.length() - 1);
+                    temp2 = wraping(temp2);
+                    ret += temp2 + ",";
+                    temp2 = "";
+                } else {
+                    continue;
                 }
-                temp1 = enterDoubleTab;
-                continue;
             }
+            temp1 = "";
         }
 
-        ret = ret.substring(0, ret.length() -3 );
-        ret += enter + "}";
+        ret = ret.substring(0, ret.length() -1);
+        ret = wraping(ret);
 
         if (this.aCase == CASE.LOWER) {
             ret = ret.toLowerCase();
@@ -123,7 +157,71 @@ public class Parser {
             ret = ret.toUpperCase();
         }
 
+        ret = this.indentString(ret);
+
         this.buf_writer.write(ret);
+
+        return ret;
+    }
+
+    private String indentString(String _input) {
+        String ret = "";
+        String enter = "\r\n";
+        String tab = "\t";
+        int line_break_flag = 0;
+
+        int depth = 0;
+        int i;
+        char[] input = _input.toCharArray();
+
+        for (char chr : input){
+            switch (chr){
+                case '{':
+                    if (depth < 2) {
+                        ret += chr + enter;
+                        depth++;
+                        for (i = 0; i < depth; i++) {
+                            ret += tab;
+                        }
+                    } else {
+                        ret += chr;
+                        depth++;
+                        line_break_flag = 0;
+                    }
+                    break;
+
+                case '}':
+                    depth --;
+                    if (depth < 2) {
+                        ret += enter;
+                        for (i = 0; i < depth; i++) {
+                            ret += tab;
+                        }
+                        ret += chr;
+                    } else {
+                        ret += chr;
+                    }
+                    break;
+
+                case ',':
+                    if (depth < 3) {
+                        ret += chr + enter;
+                        for (i = 0; i < depth; i++) {
+                            ret += tab;
+                        }
+                    } else {
+                        ret += chr;
+                        line_break_flag++;
+                        if (line_break_flag % 10 == 0) {
+                            ret += enter + tab + tab;
+                        }
+                    }
+                    break;
+
+                default:
+                    ret += chr;
+            }
+        }
 
         return ret;
     }
@@ -137,6 +235,9 @@ public class Parser {
         switch (flag) {
             case BYTE:
                 ret = wraping(this.makeByteFormat(input.get(_keyword)));
+                break;
+            case LEN:
+                ret = String.valueOf(Integer.parseInt(input.get(_keyword))/8);
                 break;
             case NONE:
                 ret = input.get(_keyword);
@@ -172,14 +273,9 @@ public class Parser {
         while (i < temp1.length) {
             ret += "0x" + temp1[i] + temp1[i+1];
 
-            if (i % 20 == 18 ) {
-                ret += "\r\n\t\t";
-            }
-
             if (i != temp1.length -2 ) {
                 ret += ",";
             }
-
             i += 2;
         }
 
@@ -187,6 +283,6 @@ public class Parser {
     }
 
     private String wraping(String input) {
-        return "{ " + input + " }";
+        return "{" + input + "}";
     }
 }

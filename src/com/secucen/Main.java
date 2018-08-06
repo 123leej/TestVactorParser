@@ -46,27 +46,29 @@ public class Main {
                     writer.close();
                 }
                 break;
-            case "single":
-                ArrayList<File> target_files = new ArrayList<File>();
-
-                //target_files.get(0).getParentFile().getAbsolutePath() + "\\" + dmp.diff_cleanupSemantic(diff); + "_Compressed.txt"
-
-                for (int i = 0; i < files.size(); i++) {
-                    target_files.add(new File(".\\" + files.get(i)));
-                    result_file = new File(util.getMatchPattern(target_files));
-
-                    reader = new BufferedReader(new FileReader(files.get(i)));
-                    writer = new BufferedWriter(new StringWriter());
-                    parser = new Parser(reader, writer, Parser.CASE.valueOf(acase.get(0)));
-
-                    parser.setKeyword(keyword);
-
-                    //parser.parseString();
-
-                    reader.close();
-                    writer.close();
-                }
-                break;
+//            case "single":
+//                ArrayList<File> target_files = new ArrayList<File>();
+//
+//                //target_files.get(0).getParentFile().getAbsolutePath() + "\\" + dmp.diff_cleanupSemantic(diff); + "_Compressed.txt"
+//
+//                reader = null;
+//                writer = new BufferedWriter(new StringWriter());
+//                parser = new Parser(reader, writer, Parser.CASE.valueOf(acase.get(0)));
+//
+//                parser.setKeyword(keyword);
+//
+//                for (int i = 0; i < files.size(); i++) {
+//                    target_files.add(new File(".\\" + files.get(i)));
+//                    //result_file = new File(util.getMatchPattern(target_files));
+//                    result_file = new File("test.txt");
+//                    parser.update_reader(new BufferedReader(new FileReader(files.get(i))));
+//
+//                    parser.mappingDataByPlainText();
+//
+//                    reader.close();
+//                }
+//                writer.close();
+//                break;
             default:
                 original = new File(".\\" + files.get(0));
 
