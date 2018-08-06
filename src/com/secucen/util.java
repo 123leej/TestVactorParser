@@ -10,7 +10,7 @@ public class util {
 
     public static String getMatchPattern(ArrayList<File> target_files) {
 
-        String path = target_files.get(0).getParentFile().getAbsolutePath() + "\\";
+        String path = target_files.get(0).getParentFile().getAbsolutePath();
         ArrayList<String> file_name = new ArrayList<String>();
         diff_match_patch dmp = new diff_match_patch();
         String ret = "";
@@ -29,6 +29,6 @@ public class util {
             }
         }
 
-        return ret;
+        return path + "\\" + ret;
     }
 }
